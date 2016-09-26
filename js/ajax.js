@@ -2,7 +2,7 @@
  * @overview ajax操作模块（包括jsonp）
  * @author mile 295504163@qq.com
  * @createDate 2016-08-01
- * @lastModifiedDate 2016-08-01
+ * @lastModifiedDate 2016-09-26
  * @lastModifiedBy mile
  * @version 0.0.1
  */
@@ -92,16 +92,12 @@
             timer = setTimeout(function () {
                 if (args.data_type === 'jsonp') {
                     obj.head_tag.removeChild(obj.script);
-                    try{ //IE低版本BUG
-                        delete window[obj.callback];
-                    }catch(e){
-                        window[obj.callback] = null;
-                    }
                 } else {
                     is_timeout = true;
                     xhr && xhr.abort();
                 }
                 args.error('无状态码', '请求超时');
+                args.complete();
             }, args.timeout);
         }
     }
@@ -126,6 +122,7 @@
             }
             head_tag.removeChild(script);
             args.success(data);
+            args.complete();
         }
 
         script.src = args.url + (args.url.indexOf('?') > -1 ? '&' : '?') + 'callback=' + callback;
@@ -182,25 +179,11 @@
                 } else {
                     args.error(xhr.status, xhr.statusText);
                 }
+                args.complete();
             }
         };
         xhr.send(args.type === 'get' ? null : args.data);
         set_timer(args);
-    }
-
-    /**
-     * 发起请求
-     * @param {Object} args 设置的参数
-     */
-    function connect(args) {
-        args.type = args.type.toLowerCase();
-        set_data(args);
-        args.before(args);
-        if (args.data_type === 'jsonp') {
-            create_jsonp(args);
-        } else {
-            create_xhr(args);
-        }
     }
 
     /**
@@ -216,9 +199,10 @@
      * @param {Function} before 发送之前执行的函数，可接收过滤后的参数
      * @param {Function} error 请求报错执行的函数，可接收失败的状态码和状态信息
      * @param {Function} success 请求成功的回调函数，可接收成功之后返回的数据
+     * @param {Function} complete 无论成功失败都会执行的回调
      */
-    global.ajax = function(args) {
-        connect({
+    function ajax(args) {
+        var options = {
             url: args.url || '',
             type: args.type || 'GET',
             data: args.data || null,
@@ -228,10 +212,20 @@
             async: args.async === undefined ? true : !!args.async,
             before: args.before || function () {},
             error: args.error || function () {},
-            success: args.success || function () {}
-        });
+            success: args.success || function () {},
+            complete: args.complete || function () {}
+        };
+        options.type = options.type.toLowerCase();
+        set_data(options);
+        options.before(options);
+        if (options.data_type === 'jsonp') {
+            create_jsonp(options);
+        } else {
+            create_xhr(options);
+        }
     }
 
+    global.ajax = ajax;
     /**
      * get方法封装
      * @param {String} url 请求网址
@@ -239,7 +233,7 @@
      * @param {Function} success 请求成功的回调函数
      * @param {String} dataType 请求的类型 ，可选'json/jsonp'
      */
-    global.ajax.get = function(url, data, success, dataType) {
+    global.ajax.get = function (url, data, success, dataType) {
 
         if (is_function(data)) {
             if(typeof success == 'string'){
@@ -249,16 +243,12 @@
             data = null;
         }
 
-        connect({
-            url: url || '',
-            type: 'GET',
-            data: data || null,
-            content_type: '',
-            data_type: dataType || '',
-            async: true,
-            before: function () {},
-            error: function () {},
-            success: success || function () {}
+        ajax({
+            url: url,
+            type:'GET',
+            data: data,
+            dataType: dataType,
+            success: success
         });
     }
 
@@ -269,7 +259,7 @@
      * @param {Function} success 请求成功的回调函数
      * @param {String} dataType 请求的类型 ，可选'json/jsonp'
      */
-    global.ajax.post = function(url, data, success, dataType) {
+    global.ajax.post = function (url, data, success, dataType) {
 
         if (is_function(data)) {
             if(typeof success == 'string'){
@@ -279,16 +269,12 @@
             data = null;
         }
 
-        connect({
-            url: url || '',
+        ajax({
+            url: url,
             type: 'POST',
             data: data || null,
-            content_type: '',
-            async: true,
-            data_type: dataType || '',
-            before: function () {},
-            error: function () {},
-            success: success || function () {}
+            dataType: dataType,
+            success: success
         });
     }
 

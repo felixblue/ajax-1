@@ -5,33 +5,33 @@
     <meta charset="UTF-8">
     <title>Test Document</title>
     <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
-    <script src="dist/ajax.min.js"></script>
+    <script src="js/ajax.js"></script>
 </head>
 
 <body>
     <script>
-        window.ajax({
-            url:'https://www.baidu.com/',
-            type:'POST',
-            dataType:'json',
-            before:function(args){//每次请求都会执行该函数
-                console.log(args.per_page);
-            },
-            success:function(res){
-                console.log(res);
-            },
-            error:function(err){
-                console.log(err);
-            }
-        });
+        // window.ajax({
+        //     url:'http://www.qiugonglue.com/cms/cms_list',
+        //     type:'GET',
+        //     dataType:'json',
+        //     before:function(args){//每次请求都会执行该函数
+        //         console.log(args);
+        //     },
+        //     success:function(res){
+        //         console.log(res);
+        //     },
+        //     error:function(err){
+        //         console.log(err);
+        //     }
+        // });
 
-        // window.ajax.get('https://www.baidu.com/',{num:1},function(res){
+        window.ajax.get('http://www.qiugonglue.com/cms/cms_list',{num:1},function(res){
+            console.log(res);
+        },'json');
+
+        // window.ajax.post('http://www.qiugonglue.com/cms/cms_list',{num:1},function(res){
         //     console.log(res);
         // },'jsonp');
-        //
-        // window.ajax.post('https://www.baidu.com/',{num:1},function(res){
-        //     console.log(res);
-        // },'json');
 
     </script>
 </body>
